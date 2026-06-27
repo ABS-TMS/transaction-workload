@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction Workload — Attorney Broker Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0d1b2a;
+    --navy-mid: #1a2f45;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --cream: #f9f6f0;
+    --cream-dark: #ede9e1;
+    --text: #1a1a1a;
+    --text-muted: #6b6b6b;
+    --agent-blue: #1a4a7a;
+    --agent-bg: #e8f0f9;
+    --client-green: #1a5c3a;
+    --client-bg: #e3f2e9;
+    --border: rgba(0,0,0,0.1);
+    --radius: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--navy);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    color: var(--gold);
+    font-size: 22px;
+    letter-spacing: 0.02em;
+  }
+
+  .logo span { color: rgba(255,255,255,0.5); font-size: 13px; font-family: 'DM Sans', sans-serif; margin-left: 10px; font-weight: 300; }
+
+  .header-badge {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.08);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  main { max-width: 800px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .page-sub { font-size: 15px; color: var(--text-muted); margin-bottom: 2rem; font-weight: 300; }
+
+  .upload-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--cream-dark);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--cream);
+  }
+
+  .drop-zone:hover, .drop-zone.drag {
+    border-color: var(--gold);
+    background: #fdf9f0;
+  }
+
+  .drop-zone input { display: none; }
+
+  .drop-icon {
+    width: 52px; height: 52px;
+    background: var(--navy);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+  }
+
+  .drop-icon svg { width: 22px; height: 22px; stroke: var(--gold); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .drop-title { font-size: 17px; font-weight: 500; color: var(--navy); margin-bottom: 6px; }
+  .drop-sub { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .drop-note { font-size: 12px; color: var(--gold); margin-top: 10px; font-weight: 500; letter-spacing: 0.03em; }
+
+  .progress-area { display: none; margin-top: 1.5rem; }
+  .progress-track { height: 4px; background: var(--cream-dark); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+  .progress-fill { height: 100%; width: 0; background: var(--gold); border-radius: 2px; transition: width 0.4s ease; }
+  .progress-msg { font-size: 13px; color: var(--text-muted); text-align: center; }
+
+  .error-box {
+    background: #fff5f5;
+    border: 1px solid #fcc;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #c00;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .results { display: none; }
+
+  .prop-banner {
+    background: var(--navy);
+    border-radius: var(--radius);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .prop-address { font-family: 'DM Serif Display', serif; font-size: 22px; color: white; margin-bottom: 4px; }
+  .prop-parties { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 300; }
+  .prop-closing { text-align: right; flex-shrink: 0; }
+  .prop-closing-label { font-size: 11px; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+  .prop-closing-date { font-size: 18px; color: white; font-weight: 500; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .fields-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .fields-header {
+    padding: 12px 20px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .fields-header span { font-size: 13px; font-weight: 500; color: var(--navy); }
+
+  .edit-btn {
+    font-size: 12px;
+    color: var(--gold);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    padding: 0;
+  }
+
+  .fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .field-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .field-row:nth-child(odd) { background: rgba(0,0,0,0.01); }
+  .field-label { color: var(--text-muted); flex-shrink: 0; }
+  .field-val { font-weight: 500; color: var(--navy); text-align: right; }
+  .field-missing { color: #bbb; font-style: italic; font-weight: 300; }
+
+  .edit-panel {
+    display: none;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .edit-panel .section-label { margin-bottom: 12px; }
+
+  .edit-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .edit-row:last-of-type { border-bottom: none; }
+  .edit-row label { color: var(--text-muted); width: 180px; flex-shrink: 0; }
+
+  .edit-row input {
+    flex: 1;
+    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--cream);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn-navy { background: var(--navy); color: white; margin-top: 12px; }
+  .btn-outline { background: white; color: var(--navy); border: 1px solid var(--border); margin-top: 1rem; width: 100%; justify-content: center; }
+
+  .workload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5rem; }
+
+  .workload-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .workload-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .agent-header { background: var(--agent-bg); color: var(--agent-blue); }
+  .client-header { background: var(--client-bg); color: var(--client-green); }
+
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.45;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+
+  .task-item:last-child { border-bottom: none; }
+  .task-item:hover { background: var(--cream); }
+  .task-item.done { text-decoration: line-through; opacity: 0.45; }
+
+  .task-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 1px;
+  }
+
+  .agent-check { background: var(--agent-bg); color: var(--agent-blue); }
+  .client-check { background: var(--client-bg); color: var(--client-green); }
+  .task-item.done .task-check { background: #e3f2e9; color: var(--client-green); }
+
+  .dl-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+
+  .dl-normal { background: #fef3dc; color: #8a5e00; }
+  .dl-urgent { background: #fde8e8; color: #c00; }
+
+  @media print {
+    header, .upload-card, .btn-outline, .edit-btn, .edit-panel { display: none !important; }
+    body { background: white; }
+    main { padding: 0; max-width: 100%; }
+    .prop-banner { background: #0d1b2a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; }
+    .workload-grid { grid-template-columns: 1fr 1fr; }
+    .agent-header { background: #e8f0f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .client-header { background: #e3f2e9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .dl-urgent, .dl-normal { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .task-item:hover { background: none; }
+    a { text-decoration: none; }
+    .fields-card, .workload-card { break-inside: avoid; }
+  }
+
+  @media (max-width: 600px) {
+    .workload-grid { grid-template-columns: 1fr; }
+    .fields-grid { grid-template-columns: 1fr; }
+    .prop-banner { flex-direction: column; }
+    .prop-closing { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Attorney Broker Services <span>Agent Portal</span></div>
+  <a href="https://attorneybrokerservices.com" target="_blank" class="header-badge" style="text-decoration:none;">attorneybrokerservices.com</a>
+</header>
+
+<main>
+  <div class="page-title">Transaction workload</div>
+  <div class="page-sub">Attorney Broker Services — upload your executed TREC contract (20-18 or 20-19) to instantly generate your agent and client checklists.</div>
+
+  <div class="upload-card" id="upload-section">
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('pdf-input').click()">
+      <input type="file" id="pdf-input" accept=".pdf">
+      <div class="drop-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <div class="drop-title">Upload executed contract PDF</div>
+      <div class="drop-sub">Drag and drop or click to browse</div>
+      <div class="drop-note">Digital download only — DocuSign · Authentisign · zipForm</div>
+    </div>
+
+    <div class="progress-area" id="progress-area">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-msg" id="progress-msg">Reading contract...</div>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <div class="results" id="results">
+
+    <div class="prop-banner" id="prop-banner">
+      <div>
+        <div class="prop-address" id="prop-address">—</div>
+        <div class="prop-parties" id="prop-parties">—</div>
+      </div>
+      <div class="prop-closing">
+        <div class="prop-closing-label">Closing</div>
+        <div class="prop-closing-date" id="closing-date-banner">—</div>
+      </div>
+    </div>
+
+    <div class="section-label">Extracted fields</div>
+
+    <div class="fields-card">
+      <div class="fields-header">
+        <span>Contract data</span>
+        <button class="edit-btn" onclick="toggleEdit()">Edit fields</button>
+      </div>
+      <div class="fields-grid" id="fields-grid"></div>
+    </div>
+
+    <div class="edit-panel" id="edit-panel">
+      <div class="section-label">Correct any fields Claude misread</div>
+      <div id="edit-fields"></div>
+      <button class="btn btn-navy" onclick="applyEdits()">Apply &amp; regenerate checklists</button>
+    </div>
+
+    <div class="workload-grid">
+      <div class="workload-card">
+        <div class="workload-header agent-header">Agent tasks</div>
+        <div id="agent-tasks"></div>
+      </div>
+      <div class="workload-card">
+        <div class="workload-header client-header">Buyer tasks</div>
+        <div id="client-tasks"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:0;">
+    <button class="btn btn-outline" onclick="printResults()" style="flex:1;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:5px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print / Save PDF
+    </button>
+    <button class="btn btn-outline" onclick="resetApp()" style="flex:1;">Upload another contract</button>
+  </div>
+
+  </div>
+</main>
+
+<script>
+let extractedData = null;
+
+function daysBetween(d1, d2) {
+  return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+}
+
+function parseDate(str) {
+  if (!str) return null;
+  const p = str.split('/');
+  if (p.length === 3) return new Date(p[2], p[0]-1, p[1]);
+  return null;
+}
+
+function urgency(dateStr) {
+  if (!dateStr) return '';
+  const d = parseDate(dateStr);
+  if (!d) return '';
+  const days = daysBetween(new Date(), d);
+  if (days < 0) return 'dl-urgent';
+  if (days <= 3) return 'dl-urgent';
+  return 'dl-normal';
+}
+
+function setProgress(pct, msg) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-msg').textContent = msg;
+}
+
+function showError(msg) {
+  document.getElementById('progress-area').style.display = 'none';
+  const el = document.getElementById('error-box');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function renderFields(data) {
+  const rows = [
+    ['Contract form', data.contract_form_version ? 'TREC ' + data.contract_form_version : null],
+    ['Buyer(s)', data.buyer_names],
+    ['Seller(s)', data.seller_names],
+    ['Sales price', data.sales_price],
+    ['Effective date', data.effective_date],
+    ['Closing date', data.closing_date],
+    ['Option period', data.option_period_days ? data.option_period_days + ' days' : null],
+    ['Option fee', data.option_fee],
+    ['Option expiry', data.option_expiry_date],
+    ['Earnest money', data.earnest_money],
+    ['EM deadline', data.earnest_money_deadline],
+    ['Title company', data.title_company || data.earnest_money_holder],
+    ['Finance deadline', data.finance_contingency_date],
+  ];
+  return rows.map(([label, val]) => `
+    <div class="field-row">
+      <span class="field-label">${label}</span>
+      <span class="${val ? 'field-val' : 'field-missing'}">${val || 'Not found'}</span>
+    </div>`).join('');
+}
+
+function buildAgentTasks(data) {
+  const tasks = [];
+  if (data.option_fee && data.option_expiry_date) tasks.push({ text: `Deliver option fee (${data.option_fee}) to seller`, dl: data.option_expiry_date });
+  if (data.earnest_money && data.earnest_money_deadline) tasks.push({ text: `Confirm earnest money (${data.earnest_money}) delivered to ${data.earnest_money_holder || 'title company'}`, dl: data.earnest_money_deadline });
+  tasks.push({ text: 'Order title commitment', dl: null });
+  tasks.push({ text: 'Submit to MLS as pending', dl: null });
+  tasks.push({ text: 'Coordinate home inspection', dl: data.option_expiry_date });
+  tasks.push({ text: 'Follow up on repair amendments if needed', dl: data.option_expiry_date });
+  if (data.finance_contingency_date) tasks.push({ text: 'Confirm buyer financing commitment', dl: data.finance_contingency_date });
+  tasks.push({ text: 'Schedule final walkthrough', dl: data.closing_date });
+  tasks.push({ text: 'Confirm closing time with title company', dl: data.closing_date });
+  tasks.push({ text: 'Upload all executed docs to transaction file', dl: null });
+  return tasks;
+}
+
+function buildClientTasks(data) {
+  const tasks = [];
+  if (data.option_period_days) tasks.push({ text: `Schedule home inspection before ${data.option_expiry_date}`, dl: data.option_expiry_date });
+  if (data.earnest_money) tasks.push({ text: `Deliver earnest money (${data.earnest_money}) to title company by ${data.earnest_money_deadline}`, dl: data.earnest_money_deadline });
+  tasks.push({ text: 'Provide lender with all required documents', dl: null });
+  tasks.push({ text: 'Review title commitment when received', dl: null });
+  tasks.push({ text: 'Review and sign all loan disclosures', dl: null });
+  tasks.push({ text: 'Secure homeowners insurance binder', dl: data.closing_date });
+  if (data.hoa_applicable) tasks.push({ text: 'Review HOA documents within review period', dl: data.option_expiry_date });
+  tasks.push({ text: 'Complete final walkthrough', dl: data.closing_date });
+  tasks.push({ text: 'Arrange wire transfer or certified funds for closing', dl: data.closing_date });
+  tasks.push({ text: 'Bring valid photo ID to closing', dl: null });
+  return tasks;
+}
+
+function renderTasks(tasks, checkClass) {
+  return tasks.map((t, i) => `
+    <div class="task-item" onclick="this.classList.toggle('done')">
+      <span class="task-check ${checkClass}">${i+1}</span>
+      <span>${t.text}${t.dl ? `<span class="dl-badge ${urgency(t.dl)}" style="margin-left:6px;">${t.dl}</span>` : ''}</span>
+    </div>`).join('');
+}
+
+function showResults(data) {
+  extractedData = data;
+  document.getElementById('prop-address').textContent = data.property_address || 'Property';
+  document.getElementById('prop-parties').textContent = (data.buyer_names || 'Buyer') + ' — ' + (data.seller_names || 'Seller');
+  document.getElementById('closing-date-banner').textContent = data.closing_date || 'TBD';
+  document.getElementById('fields-grid').innerHTML = renderFields(data);
+  document.getElementById('agent-tasks').innerHTML = renderTasks(buildAgentTasks(data), 'agent-check');
+  document.getElementById('client-tasks').innerHTML = renderTasks(buildClientTasks(data), 'client-check');
+
+  const editableFields = [
+    ['effective_date', 'Effective date', data.effective_date],
+    ['closing_date', 'Closing date', data.closing_date],
+    ['option_period_days', 'Option period (days)', data.option_period_days],
+    ['option_expiry_date', 'Option expiry date', data.option_expiry_date],
+    ['earnest_money_deadline', 'Earnest money deadline', data.earnest_money_deadline],
+    ['finance_contingency_date', 'Finance deadline', data.finance_contingency_date],
+    ['earnest_money_holder', 'Title company', data.earnest_money_holder],
+  ];
+  document.getElementById('edit-fields').innerHTML = editableFields.map(([key, label, val]) => `
+    <div class="edit-row">
+      <label>${label}</label>
+      <input type="text" data-key="${key}" value="${val || ''}">
+    </div>`).join('');
+
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleEdit() {
+  const panel = document.getElementById('edit-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function applyEdits() {
+  document.querySelectorAll('#edit-fields input').forEach(inp => {
+    extractedData[inp.dataset.key] = inp.value || null;
+  });
+  showResults(extractedData);
+  document.getElementById('edit-panel').style.display = 'none';
+}
+
+function resetApp() {
+  extractedData = null;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('progress-area').style.display = 'none';
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('pdf-input').value = '';
+  document.getElementById('progress-fill').style.width = '0';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function processFile(file) {
+  if (!file || file.type !== 'application/pdf') {
+    showError('Please upload a PDF file.');
+    return;
+  }
+
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('progress-area').style.display = 'block';
+  setProgress(10, 'Reading contract PDF...');
+
+  try {
+    const base64 = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result.split(',')[1]);
+      reader.onerror = () => rej(new Error('File read failed'));
+      reader.readAsDataURL(file);
+    });
+
+    setProgress(35, 'Sending to extraction engine...');
+
+    const response = await fetch('/.netlify/functions/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pdfBase64: base64 })
+    });
+
+    setProgress(75, 'Processing contract fields...');
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Server error');
+
+    setProgress(100, 'Done!');
+    setTimeout(() => showResults(result), 400);
+
+  } catch (err) {
+    showError('Could not process this contract. Make sure it is a digital PDF from DocuSign, Authentisign, or zipForm — not a scanned copy. (' + err.message + ')');
+  }
+}
+
+function printResults() {
+  window.print();
+}
+
+document.getElementById('pdf-input').addEventListener('change', e => {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+});
+
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+</script>
+</body>
+</html>
+<!-- PRINT STYLES injected -->
