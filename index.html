@@ -344,9 +344,51 @@
     .prop-banner { flex-direction: column; }
     .prop-closing { text-align: left; }
   }
+  /* ── PIN GATE ── */
+  #pinGate {
+    position: fixed; inset: 0; background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; padding: 24px;
+  }
+  #pinGate.hidden { display: none; }
+  .pin-card {
+    background: white; border-top: 4px solid var(--gold);
+    padding: 36px 32px; max-width: 360px; width: 100%;
+    text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pin-card h2 { font-family: 'DM Serif Display', serif; margin: 0 0 6px; color: var(--navy); font-size: 22px; font-weight: normal; }
+  .pin-card p { margin: 0 0 22px; font-size: 13px; color: var(--text-muted); font-style: italic; }
+  .pin-input {
+    width: 100%; font-family: 'DM Sans', monospace; font-size: 22px;
+    letter-spacing: 0.5em; text-align: center; padding: 12px 10px;
+    border: 1px solid var(--border-2); background: var(--cream); color: var(--text);
+    margin-bottom: 16px; border-radius: var(--radius);
+  }
+  .pin-input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .pin-error { min-height: 1.2em; color: #c00; font-size: 12.5px; margin-bottom: 14px; }
+  .pin-submit {
+    width: 100%; background: var(--navy); color: white; padding: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; border: none;
+    cursor: pointer; border-radius: var(--radius);
+  }
+  .pin-submit:hover { background: var(--navy-mid); }
 </style>
 </head>
 <body>
+
+<div id="pinGate">
+  <div class="pin-card">
+    <h2>Transaction Workload</h2>
+    <p>Enter your access PIN to continue</p>
+    <input type="password" inputmode="numeric" maxlength="6" class="pin-input" id="pinInput" placeholder="&middot;&middot;&middot;&middot;">
+    <div class="pin-error" id="pinError"></div>
+    <button class="pin-submit" id="pinSubmit">Unlock</button>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;">
 
 <header>
   <div class="logo">Attorney Broker Services <span>Agent Portal</span></div>
@@ -426,6 +468,8 @@
 
   </div>
 </main>
+
+</div>
 
 <script>
 let extractedData = null;
@@ -632,6 +676,47 @@ dz.addEventListener('drop', e => {
   dz.classList.remove('drag');
   if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
 });
+
+// ── PIN GATE ──
+const TRANSACTION_WORKLOAD_PIN = "4471";
+const TW_PIN_STORAGE_KEY = "transaction_workload_unlocked";
+
+const twPinGate = document.getElementById('pinGate');
+const twAppShell = document.getElementById('appShell');
+const twPinInput = document.getElementById('pinInput');
+const twPinError = document.getElementById('pinError');
+const twPinSubmit = document.getElementById('pinSubmit');
+
+function unlockTransactionWorkload() {
+  twPinGate.classList.add('hidden');
+  twAppShell.style.display = 'block';
+}
+
+function checkTransactionWorkloadPin() {
+  const entered = twPinInput.value.trim();
+  if (entered === TRANSACTION_WORKLOAD_PIN) {
+    try { localStorage.setItem(TW_PIN_STORAGE_KEY, "true"); } catch (e) {}
+    twPinError.textContent = '';
+    unlockTransactionWorkload();
+  } else {
+    twPinError.textContent = "That PIN didn't match. Try again.";
+    twPinInput.value = '';
+    twPinInput.focus();
+  }
+}
+
+twPinSubmit.addEventListener('click', checkTransactionWorkloadPin);
+twPinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkTransactionWorkloadPin(); });
+
+(function initTransactionWorkloadPin() {
+  let alreadyUnlocked = false;
+  try { alreadyUnlocked = localStorage.getItem(TW_PIN_STORAGE_KEY) === "true"; } catch (e) {}
+  if (alreadyUnlocked) {
+    unlockTransactionWorkload();
+  } else {
+    twPinInput.focus();
+  }
+})();
 </script>
 </body>
 </html>
